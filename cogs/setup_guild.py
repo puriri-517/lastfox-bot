@@ -38,5 +38,6 @@ class SetupGuild(commands.Cog):
 
         await interaction.response.send_message(f"✅ {channel.mention} とロールを作成しました。", ephemeral=True)
 
-async def setup(bot: commands.Bot):
+# 👇 関数名を setup → setup_guild_cog に変更
+async def setup_guild_cog(bot: commands.Bot):
     await bot.add_cog(SetupGuild(bot))
