@@ -79,10 +79,10 @@ async def setup_hook():
         print(f"❌ cogs.clear 読み込み失敗: {e}")
 
     try:
-        await bot.load_extension("cogs.setup_guild")
-        print("✅ cogs.setup_guild を読み込みました")
+        await bot.load_extension("cogs.setup_invite")
+        print("✅ cogs.setup_invite を読み込みました")
     except Exception as e:
-        print(f"❌ cogs.setup_guild 読み込み失敗: {e}")
+        print(f"❌ cogs.setup_invite 読み込み失敗: {e}")
 
 # Bot起動
 print("🚀 Bot を起動します")
