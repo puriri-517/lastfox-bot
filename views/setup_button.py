@@ -8,8 +8,16 @@ class SetupButtonView(ui.View):
 
     @ui.button(label="🔧 セットアップを開始する", style=discord.ButtonStyle.primary, custom_id="start_setup")
     async def start_setup(self, interaction: Interaction, button: ui.Button):
-        # ✅ 管理者チェック
-        if not interaction.user.guild_permissions.administrator:
+        # ✅ DMでは動作させない（Guild が必要）
+        if interaction.guild is None:
+            await interaction.response.send_message(
+                "⚠️ この操作はサーバー内でのみ使用できます。",
+                ephemeral=True
+            )
+            return
+
+        member = interaction.guild.get_member(interaction.user.id)
+        if not member.guild_permissions.administrator:
             await interaction.response.send_message(
                 "⚠️ セットアップはサーバー管理者のみが実行できます。",
                 ephemeral=True
@@ -18,10 +26,9 @@ class SetupButtonView(ui.View):
 
         await interaction.response.send_message("✅ セットアップを開始します。", ephemeral=True)
 
-        # 👇 ここにセットアップ処理（チャンネル作成やロール作成）を追加
         guild = interaction.guild
 
-        # チャンネルの作成（例: lastfox-操作部屋）
+        # ✅ チャンネル作成
         channel_name = "LastFox-操作部屋"
         existing_channel = discord.utils.get(guild.text_channels, name=channel_name)
         if not existing_channel:
@@ -33,7 +40,7 @@ class SetupButtonView(ui.View):
         else:
             await interaction.followup.send("✅ 操作部屋はすでに存在しています。", ephemeral=True)
 
-        # ロールの作成（例: LastFox管理者）
+        # ✅ ロール作成
         role_name = "LastFox管理者"
         existing_role = discord.utils.get(guild.roles, name=role_name)
         if not existing_role:
