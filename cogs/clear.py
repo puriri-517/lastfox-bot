@@ -20,9 +20,6 @@ class ClearCog(commands.Cog):
         deleted = await interaction.channel.purge(limit=amount + 1)
         await interaction.response.send_message(f"{len(deleted)-1}件のメッセージを削除しました。", delete_after=5)
 
-    async def cog_load(self):
-        # スラッシュコマンドの登録
-        self.bot.tree.add_command(self.clear)
-
 async def setup(bot):
     await bot.add_cog(ClearCog(bot))
+
