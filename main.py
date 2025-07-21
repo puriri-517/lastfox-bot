@@ -26,5 +26,6 @@ async def on_ready():
 @bot.event
 async def setup_hook():
     await bot.load_extension("cogs.clear")
-
+    await bot.load_extension("cogs.setup_notice")
+    
 bot.run(TOKEN)
