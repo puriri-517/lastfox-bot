@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 import os
 
-# .env の読み込み（ローカル実行にも対応）
+# .env の読み込み（Renderやローカル実行対応）
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -16,15 +16,16 @@ if not TOKEN:
     print("❌ DISCORD_TOKEN が設定されていません。")
     exit(1)
 
-# インテント設定（!コマンドに必要）
+# インテント設定（!コマンドやユーザー取得に必要）
 intents = discord.Intents.default()
 intents.message_content = True
 intents.messages = True
+intents.members = True  # 管理者DM送信に必要
 
 # Bot初期化
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Botが起動したときの処理（スラッシュコマンド同期もここで）
+# Bot起動時
 @bot.event
 async def on_ready():
     print("🟢 on_ready が呼ばれました")
@@ -37,7 +38,37 @@ async def on_ready():
     except Exception as e:
         print(f"❌ スラッシュコマンド同期失敗: {e}")
 
-# Cogの読み込み（Bot起動時に自動）
+# サーバーに参加したとき（管理者に案内送信）
+@bot.event
+async def on_guild_join(guild: discord.Guild):
+    print(f"📥 新しいサーバーに参加：{guild.name} ({guild.id})")
+
+    # 管理者と思われるメンバーを探す
+    admin = None
+    for member in guild.members:
+        if member.guild_permissions.administrator and not member.bot:
+            admin = member
+            break
+
+    if admin:
+        try:
+            await admin.send("✅ LastFoxを導入いただきありがとうございます！\nサーバー内で `/setup` コマンドを実行して、初期セットアップを行ってください。")
+            print(f"📩 管理者 {admin} にDMを送信しました")
+            return
+        except discord.Forbidden:
+            print("⚠️ 管理者へのDMが拒否されました")
+
+    # fallback: 投稿可能なチャンネルを探す
+    for channel in guild.text_channels:
+        if channel.permissions_for(guild.me).send_messages:
+            try:
+                await channel.send("✅ LastFoxを導入いただきありがとうございます！\nサーバー内で `/setup` コマンドを実行して、初期セットアップを行ってください。")
+                print(f"📢 サーバー内チャンネル {channel.name} に案内を送信しました")
+                break
+            except Exception as e:
+                print(f"⚠️ チャンネルへの案内送信に失敗しました: {e}")
+
+# Cogの読み込み
 @bot.event
 async def setup_hook():
     print("🔄 setup_hook が呼び出されました")
@@ -47,8 +78,11 @@ async def setup_hook():
     except Exception as e:
         print(f"❌ cogs.clear 読み込み失敗: {e}")
 
-    # 他に読み込むCogがあればここに追加
-    # await bot.load_extension("cogs.setup_notice")
+    try:
+        await bot.load_extension("cogs.setup_guild")
+        print("✅ cogs.setup_guild を読み込みました")
+    except Exception as e:
+        print(f"❌ cogs.setup_guild 読み込み失敗: {e}")
 
 # Bot起動
 print("🚀 Bot を起動します")
