@@ -1,4 +1,7 @@
-# ✅ 完全版 main.py
+# ✅ 完全版 main.py（Render対応済み）
+import sys
+sys.stdout.reconfigure(line_buffering=True)  # ← 追加：ログを即時表示
+
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -33,7 +36,7 @@ async def on_ready():
     print(f"✅ Botログイン完了：{bot.user}")
     try:
         # サーバーIDを指定してそのサーバーのみにコマンドを同期
-        guild = discord.Object(id=1388577649328390196)  # ←ここに対象のサーバーIDを指定
+        guild = discord.Object(id=1388577649328390196)  # ←対象サーバーID
         synced = await bot.tree.sync(guild=guild)
         print(f"✅ スラッシュコマンド（ギルド限定）同期完了：{len(synced)} 件")
         for cmd in synced:
