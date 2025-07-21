@@ -1,26 +1,30 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 import os
-from dotenv import load_dotenv
 
-load_dotenv()  # .envファイルからDISCORD_TOKENを読み込み
+# .env から読み込む（Renderなどでエラー回避）
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("dotenvモジュールは読み込まれませんでした")
+
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
-intents.message_content = True  # メッセージ内容の取得を許可
+intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f"ログインしました: {bot.user} (ID: {bot.user.id})")
-    try:
-        synced = await bot.tree.sync()
-        print(f"スラッシュコマンドを {len(synced)} 件同期しました。")
-    except Exception as e:
-        print(f"スラッシュコマンドの同期に失敗しました: {e}")
+    await bot.tree.sync()  # スラッシュコマンドの同期
+    print(f"{bot.user} としてログインしました")
 
+# Cogを読み込む
 @bot.event
 async def setup_hook():
     await bot.load_extension("cogs.clear")
 
-bot.run(os.getenv("DISCORD_TOKEN"))
+bot.run(TOKEN)
