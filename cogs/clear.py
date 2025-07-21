@@ -6,7 +6,8 @@ class ClearCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="clear", description="指定した件数のメッセージを削除します")
+    # スラッシュコマンドの登録（名前を "clearbot" に変更）
+    @app_commands.command(name="clearbot", description="指定した件数のメッセージを削除します")
     @app_commands.describe(amount="削除する件数（1〜100）")
     async def clear(self, interaction: discord.Interaction, amount: int):
         await interaction.response.defer(ephemeral=True)  # 応答予約
@@ -23,6 +24,9 @@ class ClearCog(commands.Cog):
         await interaction.followup.send(f"{len(deleted)-1}件のメッセージを削除しました。", delete_after=5)
 
     async def cog_load(self):
+        # 既存の同名コマンドがあれば削除
+        if self.bot.tree.get_command("clearbot"):
+            self.bot.tree.remove_command("clearbot")
         self.bot.tree.add_command(self.clear)
 
 async def setup(bot):
