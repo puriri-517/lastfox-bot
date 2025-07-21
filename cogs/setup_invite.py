@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from views.setup_button import SetupButtonView
 
 class SetupGuild(commands.Cog):
     def __init__(self, bot):
@@ -15,35 +14,31 @@ class SetupGuild(commands.Cog):
                 admin_user = member
                 break
 
-        # 📩 管理者にDMを送信してみる
+        # 📩 管理者にDMを送信
         if admin_user:
             try:
                 await admin_user.send(
-                    f"🔧 **{guild.name}** にLastFoxを導入していただきありがとうございます！\n"
-                    f"セットアップを開始するには、以下のボタンを押してください。",
-                    view=SetupButtonView(self.bot)
+                    f"👋 **{guild.name}** に LastFox を導入していただきありがとうございます！\n"
+                    f"サーバー内で `/setup` コマンドを実行すると、操作部屋と管理ロールを自動で作成します。"
                 )
-                return  # 成功したらここで終わり
+                return  # DM送信成功で終了
             except discord.Forbidden:
                 print(f"⚠️ 管理者 {admin_user} にDMを送れませんでした。")
 
-        # 🏠 サーバー内で投稿できるチャンネルを探す
-        fallback_channel = None
+        # 🏠 チャンネルへの案内
         for channel in guild.text_channels:
             if channel.permissions_for(guild.me).send_messages:
-                fallback_channel = channel
-                break
+                try:
+                    await channel.send(
+                        "👋 LastFoxを導入ありがとうございます！\n"
+                        "サーバー内で `/setup` コマンドを実行すると、操作部屋と管理ロールを自動で作成します。"
+                    )
+                    print(f"📢 {guild.name} のチャンネル {channel.name} に案内を送信しました。")
+                    return
+                except discord.Forbidden:
+                    print(f"⚠️ {guild.name} のチャンネル {channel.name} に送信できませんでした。")
 
-        if fallback_channel:
-            try:
-                await fallback_channel.send(
-                    f"📢 Botのセットアップを行うには、以下のボタンから開始してください。",
-                    view=SetupButtonView(self.bot)
-                )
-            except discord.Forbidden:
-                print(f"⚠️ {guild.name} のチャンネルに送信できませんでした。")
-        else:
-            print(f"❌ セットアップ案内を送信できるチャンネルが見つかりませんでした。")
+        print(f"❌ {guild.name} に案内を送信できるチャンネルが見つかりませんでした。")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(SetupGuild(bot))
