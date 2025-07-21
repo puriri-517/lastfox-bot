@@ -1,4 +1,4 @@
-import discord
+    import discord
 from discord.ext import commands
 from discord import app_commands
 from views.panel_buttons import PanelButtonView
@@ -38,6 +38,6 @@ class SetupGuild(commands.Cog):
 
         await interaction.response.send_message(f"✅ {channel.mention} とロールを作成しました。", ephemeral=True)
 
-# 👇 関数名を setup → setup_guild_cog に変更
-async def setup_guild_cog(bot: commands.Bot):
+# ✅ 関数名は setup に統一（これが重要）
+async def setup(bot: commands.Bot):
     await bot.add_cog(SetupGuild(bot))
