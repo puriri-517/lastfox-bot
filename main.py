@@ -16,16 +16,16 @@ if not TOKEN:
     print("❌ DISCORD_TOKEN が設定されていません。")
     exit(1)
 
-# インテント設定（!コマンドやユーザー取得に必要）
+# インテント設定
 intents = discord.Intents.default()
 intents.message_content = True
 intents.messages = True
-intents.members = True  # 管理者DM送信に必要
+intents.members = True  # 管理者DM送信やロール処理に必要
 
-# Bot初期化
+# Bot 初期化
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Bot起動時
+# 起動時イベント
 @bot.event
 async def on_ready():
     print("🟢 on_ready が呼ばれました")
@@ -38,53 +38,29 @@ async def on_ready():
     except Exception as e:
         print(f"❌ スラッシュコマンド同期失敗: {e}")
 
-# サーバーに参加したとき（管理者に案内送信）
-@bot.event
-async def on_guild_join(guild: discord.Guild):
-    print(f"📥 新しいサーバーに参加：{guild.name} ({guild.id})")
-
-    # 管理者と思われるメンバーを探す
-    admin = None
-    for member in guild.members:
-        if member.guild_permissions.administrator and not member.bot:
-            admin = member
-            break
-
-    if admin:
-        try:
-            await admin.send("✅ LastFoxを導入いただきありがとうございます！\nサーバー内で `/setup` コマンドを実行して、初期セットアップを行ってください。")
-            print(f"📩 管理者 {admin} にDMを送信しました")
-            return
-        except discord.Forbidden:
-            print("⚠️ 管理者へのDMが拒否されました")
-
-    # fallback: 投稿可能なチャンネルを探す
-    for channel in guild.text_channels:
-        if channel.permissions_for(guild.me).send_messages:
-            try:
-                await channel.send("✅ LastFoxを導入いただきありがとうございます！\nサーバー内で `/setup` コマンドを実行して、初期セットアップを行ってください。")
-                print(f"📢 サーバー内チャンネル {channel.name} に案内を送信しました")
-                break
-            except Exception as e:
-                print(f"⚠️ チャンネルへの案内送信に失敗しました: {e}")
-
-# Cogの読み込み
+# Cog 読み込み
 @bot.event
 async def setup_hook():
     print("🔄 setup_hook が呼び出されました")
+    
     try:
         await bot.load_extension("cogs.clear")
         print("✅ cogs.clear を読み込みました")
     except Exception as e:
         print(f"❌ cogs.clear 読み込み失敗: {e}")
-
+    
     try:
-        await bot.load_extension("cogs.setup_invite")
+        await bot.load_extension("cogs.setup_invite")  # サーバー参加時のDM案内
         print("✅ cogs.setup_invite を読み込みました")
     except Exception as e:
         print(f"❌ cogs.setup_invite 読み込み失敗: {e}")
+    
+    try:
+        await bot.load_extension("cogs.setup_guild")   # /setup コマンドで部屋とロール作成
+        print("✅ cogs.setup_guild を読み込みました")
+    except Exception as e:
+        print(f"❌ cogs.setup_guild 読み込み失敗: {e}")
 
-# Bot起動
+# Bot 起動
 print("🚀 Bot を起動します")
 bot.run(TOKEN)
-
