@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 from views.panel_buttons import PanelButtonView
 
-class SetupRoom(commands.Cog):
+class SetupGuild(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -14,21 +14,29 @@ class SetupRoom(commands.Cog):
         channel_name = "LastFox-指令室"
         role_name = "LastFox管理"
 
-        # チャンネル作成
+        # ✅ チャンネル作成
         channel = discord.utils.get(guild.text_channels, name=channel_name)
         if not channel:
-            channel = await guild.create_text_channel(channel_name)
+            try:
+                channel = await guild.create_text_channel(channel_name)
+            except discord.Forbidden:
+                await interaction.response.send_message("❌ チャンネル作成に必要な権限がありません。", ephemeral=True)
+                return
 
-        # ロール作成
+        # ✅ ロール作成
         role = discord.utils.get(guild.roles, name=role_name)
         if not role:
-            await guild.create_role(name=role_name)
+            try:
+                await guild.create_role(name=role_name)
+            except discord.Forbidden:
+                await interaction.response.send_message("⚠️ ロール作成に必要な権限がありません。", ephemeral=True)
+                return
 
-        # 操作パネル送信
+        # ✅ 操作パネル送信
         embed = discord.Embed(title="LastFox 操作パネル", description="以下のボタンから機能を選択してください。", color=0x00ccff)
         await channel.send(embed=embed, view=PanelButtonView(self.bot))
 
         await interaction.response.send_message(f"✅ {channel.mention} とロールを作成しました。", ephemeral=True)
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(SetupRoom(bot))
+    await bot.add_cog(SetupGuild(bot))
