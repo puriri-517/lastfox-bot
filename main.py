@@ -53,3 +53,4 @@ async def setup_hook():
 # Bot起動
 print("🚀 Bot を起動します")
 bot.run(TOKEN)
+
